@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}CropSense AI — Climate-Resilient Crop Prediction{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<section class="hero-section d-flex align-items-center">
+  <div class="container-xl text-center text-white">
+    <div class="hero-badge mb-3">
+      <i class="fas fa-atom me-2"></i>Ensemble Machine Learning
+    </div>
+    <h1 class="display-4 fw-bold mb-3">
+      Predict <span class="text-success">Climate-Resilient</span> Crops<br>
+      <span class="fs-3 fw-normal opacity-75">for Hilly &amp; Polar Regions</span>
+    </h1>
+    <p class="lead mb-4 opacity-85">
+      Powered by Random Forest, XGBoost, Gradient Boosting &amp; SVM Ensemble<br>
+      with integrated market opportunity analysis
+    </p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="/predict" class="btn btn-success btn-lg px-5 py-3 shadow">
+        <i class="fas fa-brain me-2"></i>Predict Now
+      </a>
+      <a href="/dashboard" class="btn btn-outline-light btn-lg px-5 py-3">
+        <i class="fas fa-chart-bar me-2"></i>View Dashboard
+      </a>
+    </div>
+    <div class="hero-stats mt-5 d-flex gap-4 justify-content-center flex-wrap">
+      <div class="stat-pill"><span class="fw-bold fs-5">97.75%</span><br><small>Best Accuracy</small></div>
+      <div class="stat-pill"><span class="fw-bold fs-5">5</span><br><small>Crop Types</small></div>
+      <div class="stat-pill"><span class="fw-bold fs-5">4 + 1</span><br><small>ML Models</small></div>
+      <div class="stat-pill"><span class="fw-bold fs-5">9</span><br><small>Input Features</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="py-5">
+  <div class="container-xl">
+    <h2 class="text-center fw-bold mb-5 section-title">How It Works</h2>
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="feature-card text-center p-4 h-100">
+          <div class="feature-icon mb-3" style="color:#2ecc71">
+            <i class="fas fa-database fa-2x"></i>
+          </div>
+          <h5 class="fw-bold">Data Collection</h5>
+          <p class="text-muted small">Climate, soil &amp; market datasets from hilly and polar regions integrated seamlessly.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="feature-card text-center p-4 h-100">
+          <div class="feature-icon mb-3" style="color:#3498db">
+            <i class="fas fa-cogs fa-2x"></i>
+          </div>
+          <h5 class="fw-bold">Preprocessing</h5>
+          <p class="text-muted small">StandardScaler normalization, outlier clipping, and feature engineering pipeline.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="feature-card text-center p-4 h-100">
+          <div class="feature-icon mb-3" style="color:#e74c3c">
+            <i class="fas fa-robot fa-2x"></i>
+          </div>
+          <h5 class="fw-bold">Ensemble ML</h5>
+          <p class="text-muted small">VotingClassifier combines RF, GB, XGBoost &amp; SVM for superior prediction accuracy.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="feature-card text-center p-4 h-100">
+          <div class="feature-icon mb-3" style="color:#f39c12">
+            <i class="fas fa-chart-line fa-2x"></i>
+          </div>
+          <h5 class="fw-bold">Market Analysis</h5>
+          <p class="text-muted small">Profitability, demand, export potential and market viability scores per crop.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Top Market Crops -->
+<section class="py-5 bg-section">
+  <div class="container-xl">
+    <h2 class="text-center fw-bold mb-2 section-title">Top Market Opportunities</h2>
+    <p class="text-center text-muted mb-5">Crops ranked by composite market score</p>
+    <div class="row g-4 justify-content-center">
+      {% for crop in top_crops %}
+      <div class="col-md-4">
+        <div class="market-card p-4 h-100" style="border-top: 4px solid {{ crop.color }}">
+          <div class="d-flex align-items-center mb-3">
+            <div class="crop-icon me-3" style="background: {{ crop.color }}20; color: {{ crop.color }}">
+              <i class="fas fa-leaf fa-lg"></i>
+            </div>
+            <div>
+              <h4 class="fw-bold mb-0">{{ crop.crop }}</h4>
+              <span class="badge" style="background: {{ crop.color }}">{{ crop.market_viability }}</span>
+            </div>
+          </div>
+          <div class="row g-2 text-center">
+            <div class="col-6">
+              <div class="mini-stat p-2">
+                <div class="fw-bold text-success fs-6">&#8377;{{ crop.market_price }}</div>
+                <div class="tiny-text">Price/Quintal</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mini-stat p-2">
+                <div class="fw-bold text-warning fs-6">{{ crop.profit_margin }}%</div>
+                <div class="tiny-text">Profit Margin</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mini-stat p-2">
+                <div class="fw-bold text-info fs-6">{{ crop.demand_level }}</div>
+                <div class="tiny-text">Market Demand</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mini-stat p-2">
+                <div class="fw-bold text-primary fs-6">{{ crop.export_potential }}</div>
+                <div class="tiny-text">Export Potential</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Market Score</span><span>{{ crop.composite_score }}/10</span>
+            </div>
+            <div class="progress" style="height:6px">
+              <div class="progress-bar" role="progressbar" style="width: {{ (crop.composite_score/10)*100 }}%; background: {{ crop.color }}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="/predict" class="btn btn-success px-5">
+        <i class="fas fa-magic me-2"></i>Get Your Crop Recommendation
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Crops covered -->
+<section class="py-5">
+  <div class="container-xl">
+    <h2 class="text-center fw-bold mb-5 section-title">Crops We Predict</h2>
+    <div class="row g-3 justify-content-center">
+      {% set crops_info = [
+        ('Rice', '#2ecc71', 'fa-bowl-rice', '22-35°C', 'Hilly'),
+        ('Ragi', '#3498db', 'fa-wheat-awn', '15-30°C', 'Hilly'),
+        ('Jowar', '#e74c3c', 'fa-sun', '20-35°C', 'Polar'),
+        ('Corn', '#f39c12', 'fa-corn', '18-32°C', 'Hilly'),
+        ('Wheat', '#9b59b6', 'fa-leaf', '5-22°C', 'Polar')
+      ] %}
+      {% for name, color, icon, temp, region in crops_info %}
+      <div class="col-md-2 col-6">
+        <div class="crop-pill text-center p-3" style="border-color: {{ color }}">
+          <i class="fas {{ icon }} fa-2x mb-2" style="color: {{ color }}"></i>
+          <div class="fw-bold">{{ name }}</div>
+          <div class="tiny-text text-muted">{{ temp }}</div>
+          <div class="tiny-text"><span class="badge bg-secondary">{{ region }}</span></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

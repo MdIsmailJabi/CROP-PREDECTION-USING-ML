@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}Predict Crop — CropSense AI{% endblock %}
+{% block content %}
+
+<div class="page-hero py-5 text-center text-white">
+  <h1 class="fw-bold"><i class="fas fa-brain me-2 text-success"></i>Crop Prediction Engine</h1>
+  <p class="lead opacity-75">Enter your agro-climatic data for AI-powered recommendation</p>
+</div>
+
+<div class="container-xl py-5">
+  {% if error %}
+  <div class="alert alert-danger d-flex align-items-center mb-4 shadow" role="alert">
+    <i class="fas fa-exclamation-triangle me-3 fa-lg"></i>
+    <div><strong>Input Error:</strong> {{ error }}</div>
+  </div>
+  {% endif %}
+
+  <form method="POST" action="/predict" id="predictForm">
+    <div class="row g-4">
+      <!-- Climate Parameters -->
+      <div class="col-lg-6">
+        <div class="form-card p-4 h-100">
+          <h5 class="fw-bold mb-4 section-head">
+            <i class="fas fa-cloud-sun me-2 text-warning"></i>Climate Parameters
+          </h5>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Temperature (°C) <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">-20 to 50</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="temperature"
+              step="0.1" min="-20" max="50" value="{{ request.form.get('temperature', '18') }}"
+              placeholder="e.g. 20.5" required>
+            <div class="form-text"><i class="fas fa-info-circle me-1"></i>Average seasonal temperature</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Rainfall (mm) <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 5000</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="rainfall"
+              step="1" min="0" max="5000" value="{{ request.form.get('rainfall', '800') }}"
+              placeholder="e.g. 1200" required>
+            <div class="form-text"><i class="fas fa-info-circle me-1"></i>Annual/seasonal rainfall</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Humidity (%) <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 100</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="humidity"
+              step="0.1" min="0" max="100" value="{{ request.form.get('humidity', '60') }}"
+              placeholder="e.g. 65" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Altitude (m) <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 5000</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="altitude"
+              step="1" min="0" max="5000" value="{{ request.form.get('altitude', '500') }}"
+              placeholder="e.g. 800" required>
+            <div class="form-text"><i class="fas fa-info-circle me-1"></i>Elevation above sea level</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Region Type <span class="text-danger">*</span></label>
+            <select class="form-select form-select-lg" name="region" required>
+              <option value="1" {% if request.form.get('region','1') == '1' %}selected{% endif %}>
+                🏔️ Hilly Region
+              </option>
+              <option value="0" {% if request.form.get('region') == '0' %}selected{% endif %}>
+                ❄️ Polar Region
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Soil Parameters -->
+      <div class="col-lg-6">
+        <div class="form-card p-4 h-100">
+          <h5 class="fw-bold mb-4 section-head">
+            <i class="fas fa-mountain me-2 text-brown"></i>Soil Parameters
+          </h5>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Soil pH <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">3.5 to 9.5</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="soil_ph"
+              step="0.1" min="3.5" max="9.5" value="{{ request.form.get('soil_ph', '6.5') }}"
+              placeholder="e.g. 6.5" required>
+            <div class="form-text"><i class="fas fa-flask me-1"></i>Soil acidity/alkalinity level</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Nitrogen (N) kg/ha <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 200</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="nitrogen"
+              step="1" min="0" max="200" value="{{ request.form.get('nitrogen', '60') }}"
+              placeholder="e.g. 80" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Phosphorus (P) kg/ha <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 200</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="phosphorus"
+              step="1" min="0" max="200" value="{{ request.form.get('phosphorus', '40') }}"
+              placeholder="e.g. 40" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">
+              Potassium (K) kg/ha <span class="text-danger">*</span>
+              <span class="badge bg-secondary ms-1">0 to 200</span>
+            </label>
+            <input type="number" class="form-control form-control-lg" name="potassium"
+              step="1" min="0" max="200" value="{{ request.form.get('potassium', '40') }}"
+              placeholder="e.g. 40" required>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="mt-3">
+            <label class="form-label fw-semibold text-muted small">Quick Presets</label>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-outline-success preset-btn" 
+                data-vals='{"temperature":28,"rainfall":1500,"humidity":75,"soil_ph":6.0,"nitrogen":90,"phosphorus":60,"potassium":60,"altitude":300,"region":1}'>
+                🌾 Rice (Hilly)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary preset-btn"
+                data-vals='{"temperature":22,"rainfall":700,"humidity":55,"soil_ph":6.5,"nitrogen":60,"phosphorus":40,"potassium":40,"altitude":1200,"region":1}'>
+                🌿 Ragi (Hilly)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-warning preset-btn"
+                data-vals='{"temperature":10,"rainfall":400,"humidity":35,"soil_ph":6.8,"nitrogen":65,"phosphorus":45,"potassium":45,"altitude":2000,"region":0}'>
+                🌾 Wheat (Polar)
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info preset-btn"
+                data-vals='{"temperature":25,"rainfall":900,"humidity":65,"soil_ph":6.2,"nitrogen":75,"phosphorus":55,"potassium":55,"altitude":700,"region":1}'>
+                🌽 Corn (Hilly)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <button type="submit" class="btn btn-success btn-lg px-5 py-3 shadow predict-btn">
+        <i class="fas fa-seedling me-2"></i>Predict Best Crop
+        <span class="spinner-border spinner-border-sm ms-2 d-none" id="loadSpinner"></span>
+      </button>
+      <a href="/predict" class="btn btn-outline-secondary btn-lg px-4 py-3 ms-3">
+        <i class="fas fa-redo me-2"></i>Reset
+      </a>
+    </div>
+  </form>
+
+  <!-- Info cards -->
+  <div class="row g-3 mt-5">
+    <div class="col-md-4">
+      <div class="info-tip p-3 d-flex gap-3">
+        <i class="fas fa-lightbulb fa-lg text-warning mt-1"></i>
+        <div><strong>Tip:</strong> Use the Quick Presets above to auto-fill typical values for each crop type.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="info-tip p-3 d-flex gap-3">
+        <i class="fas fa-shield-alt fa-lg text-success mt-1"></i>
+        <div><strong>Ensemble:</strong> 4 ML models vote together (RF + GB + XGBoost + SVM) for maximum accuracy.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="info-tip p-3 d-flex gap-3">
+        <i class="fas fa-chart-pie fa-lg text-info mt-1"></i>
+        <div><strong>Output:</strong> Predicted crop with market price, demand level, profit margin and alternatives.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const vals = JSON.parse(this.dataset.vals);
+    Object.entries(vals).forEach(([k, v]) => {
+      const el = document.querySelector('[name=' + k + ']');
+      if (el) el.value = v;
+    });
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+document.getElementById('predictForm').addEventListener('submit', function() {
+  document.getElementById('loadSpinner').classList.remove('d-none');
+  document.querySelector('.predict-btn').disabled = true;
+});
+</script>
+{% endblock %}

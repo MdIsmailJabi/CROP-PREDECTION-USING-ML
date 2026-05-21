@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — CropSense AI{% endblock %}
+{% block content %}
+
+<div class="page-hero py-4 text-center text-white">
+  <h1 class="fw-bold"><i class="fas fa-chart-line me-2 text-success"></i>Analytics Dashboard</h1>
+  <p class="opacity-75">Model Performance &amp; Market Intelligence</p>
+</div>
+
+<div class="container-xl py-5">
+
+  <!-- Top KPI Row -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-3">
+      <div class="kpi-card kpi-green p-4 text-center">
+        <i class="fas fa-trophy fa-2x mb-2 text-warning"></i>
+        <div class="kpi-value">{{ "%.1f"|format(best_accuracy) }}%</div>
+        <div class="kpi-label">Best Model Accuracy</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card kpi-blue p-4 text-center">
+        <i class="fas fa-robot fa-2x mb-2 text-info"></i>
+        <div class="kpi-value">5</div>
+        <div class="kpi-label">ML Models Trained</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card kpi-orange p-4 text-center">
+        <i class="fas fa-seedling fa-2x mb-2 text-success"></i>
+        <div class="kpi-value">5</div>
+        <div class="kpi-label">Crop Classes</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="kpi-card kpi-purple p-4 text-center">
+        <i class="fas fa-database fa-2x mb-2 text-primary"></i>
+        <div class="kpi-value">2K</div>
+        <div class="kpi-label">Training Samples</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-7">
+      <div class="form-card p-4 h-100">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-chart-bar me-2 text-success"></i>Model Accuracy Comparison
+        </h5>
+        <canvas id="modelAccChart" height="220"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="form-card p-4 h-100">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-chart-pie me-2 text-info"></i>Accuracy Distribution
+        </h5>
+        <canvas id="modelRadarChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="form-card p-4 h-100">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-sort-amount-down me-2 text-warning"></i>Feature Importance (Random Forest)
+        </h5>
+        <canvas id="featureChart" height="260"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="form-card p-4 h-100">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-store me-2 text-primary"></i>Market Price by Crop
+        </h5>
+        <canvas id="marketPriceChart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Market Data Table -->
+  <div class="form-card p-4 mb-4">
+    <h5 class="fw-bold mb-3 section-head">
+      <i class="fas fa-table me-2 text-secondary"></i>Market Analysis — All Crops
+    </h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle dashboard-table">
+        <thead>
+          <tr>
+            <th>Crop</th>
+            <th>Price (₹/Qt)</th>
+            <th>Demand</th>
+            <th>Export Potential</th>
+            <th>Profit Margin</th>
+            <th>Season (Days)</th>
+            <th>Water (mm)</th>
+            <th>Market Score</th>
+            <th>Viability</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in market_data %}
+          <tr>
+            <td>
+              <span class="fw-bold" style="color: {{ m.color }}">
+                <i class="fas fa-leaf me-1"></i>{{ m.crop }}
+              </span>
+            </td>
+            <td class="fw-bold text-success">&#8377;{{ m.market_price }}</td>
+            <td>
+              <span class="badge {% if m.demand_level == 'High' %}bg-success{% elif m.demand_level == 'Medium' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                {{ m.demand_level }}
+              </span>
+            </td>
+            <td>
+              <span class="badge {% if m.export_potential == 'High' %}bg-primary{% elif m.export_potential == 'Medium' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                {{ m.export_potential }}
+              </span>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height:8px">
+                  <div class="progress-bar" style="width:{{ m.profit_margin }}%; background: {{ m.color }}"></div>
+                </div>
+                <span class="small fw-bold">{{ m.profit_margin }}%</span>
+              </div>
+            </td>
+            <td>{{ m.growing_season_days }}</td>
+            <td>{{ m.water_requirement_mm }}</td>
+            <td><span class="fw-bold" style="color: {{ m.color }}">{{ m.composite_score }}/10</span></td>
+            <td>
+              <span class="badge {% if m.market_viability == 'Excellent' %}bg-success{% elif m.market_viability == 'Good' %}bg-primary{% else %}bg-warning text-dark{% endif %}">
+                {{ m.market_viability }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Model Performance Table -->
+  <div class="form-card p-4">
+    <h5 class="fw-bold mb-3 section-head">
+      <i class="fas fa-award me-2 text-warning"></i>Model Performance Summary
+    </h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle dashboard-table">
+        <thead>
+          <tr><th>Algorithm</th><th>Accuracy</th><th>Performance</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for m in metrics %}
+          <tr {% if m.name == best_model %}class="table-success-subtle"{% endif %}>
+            <td class="fw-bold">{{ m.name }}</td>
+            <td class="fw-bold fs-5">{{ m.accuracy }}%</td>
+            <td style="min-width:200px">
+              <div class="progress" style="height:14px; border-radius:7px">
+                <div class="progress-bar progress-bar-striped" 
+                  style="width:{{ m.accuracy }}%; background: {% if m.accuracy >= 97 %}#2ecc71{% elif m.accuracy >= 95 %}#3498db{% else %}#f39c12{% endif %}">
+                  {{ m.accuracy }}%
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if m.name == best_model %}
+              <span class="badge bg-warning text-dark"><i class="fas fa-crown me-1"></i>Best Model</span>
+              {% elif m.accuracy >= 95 %}
+              <span class="badge bg-success">Excellent</span>
+              {% else %}
+              <span class="badge bg-secondary">Good</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PALETTE = ['#2ecc71','#3498db','#e74c3c','#f39c12','#9b59b6'];
+const metrics  = {{ metrics | tojson }};
+const fi       = {{ feature_importance | tojson }};
+const market   = {{ market_data | tojson }};
+
+// Model accuracy bar
+new Chart(document.getElementById('modelAccChart'), {
+  type: 'bar',
+  data: {
+    labels: metrics.map(m => m.name.replace('Support Vector Machine','SVM').replace('Ensemble (Voting)','Ensemble')),
+    datasets: [{ label: 'Accuracy (%)', data: metrics.map(m => m.accuracy),
+      backgroundColor: PALETTE, borderRadius: 8, borderSkipped: false }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 88, max: 100, ticks: { color:'#adb5bd' }, grid: { color:'#2c3e50' } },
+      x: { ticks: { color:'#adb5bd' }, grid: { display: false } }
+    }
+  }
+});
+
+// Radar chart
+new Chart(document.getElementById('modelRadarChart'), {
+  type: 'radar',
+  data: {
+    labels: metrics.map(m => m.name.split(' ')[0]),
+    datasets: [{
+      label: 'Accuracy', data: metrics.map(m => m.accuracy),
+      backgroundColor: 'rgba(46,204,113,0.2)', borderColor: '#2ecc71',
+      pointBackgroundColor: PALETTE, pointRadius: 6
+    }]
+  },
+  options: {
+    scales: { r: { min: 88, max: 100, ticks: { color:'#adb5bd', backdropColor:'transparent' }, grid: { color:'#2c3e50' }, pointLabels: { color:'#adb5bd' } } },
+    plugins: { legend: { labels: { color:'#adb5bd' } } }
+  }
+});
+
+// Feature importance horizontal bar
+new Chart(document.getElementById('featureChart'), {
+  type: 'bar',
+  data: {
+    labels: fi.map(f => f.feature),
+    datasets: [{ label: 'Importance', data: fi.map(f => f.importance),
+      backgroundColor: PALETTE.concat(PALETTE), borderRadius: 5, borderSkipped: false }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color:'#adb5bd' }, grid: { color:'#2c3e50' } },
+      y: { ticks: { color:'#adb5bd' }, grid: { display: false } }
+    }
+  }
+});
+
+// Market prices bar
+new Chart(document.getElementById('marketPriceChart'), {
+  type: 'bar',
+  data: {
+    labels: market.map(m => m.crop),
+    datasets: [
+      { label: 'Price (Rs/Qt)', data: market.map(m => m.market_price), backgroundColor: PALETTE, borderRadius: 7, borderSkipped: false },
+      { label: 'Profit Margin (%)', data: market.map(m => m.profit_margin * 20), backgroundColor: market.map(m => m.color + '50'), borderRadius: 7, borderSkipped: false }
+    ]
+  },
+  options: {
+    plugins: { legend: { labels: { color:'#adb5bd' } } },
+    scales: {
+      y: { ticks: { color:'#adb5bd' }, grid: { color:'#2c3e50' } },
+      x: { ticks: { color:'#adb5bd' }, grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

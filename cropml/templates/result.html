@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block title %}Prediction Result — CropSense AI{% endblock %}
+{% block content %}
+
+<div class="page-hero py-4 text-center text-white">
+  <h1 class="fw-bold"><i class="fas fa-poll me-2 text-success"></i>Prediction Results</h1>
+  <p class="opacity-75">Ensemble ML Analysis Complete</p>
+</div>
+
+<div class="container-xl py-5">
+  <div class="row g-4">
+
+    <!-- LEFT: Main Result -->
+    <div class="col-lg-7">
+      <!-- Hero Result Card -->
+      <div class="result-hero-card p-5 mb-4 text-center" style="border-top: 6px solid {{ market.color }}">
+        <div class="result-icon mb-3" style="background: {{ market.color }}20; border: 3px solid {{ market.color }}">
+          <i class="fas fa-seedling fa-3x" style="color: {{ market.color }}"></i>
+        </div>
+        <div class="text-muted small mb-1 text-uppercase tracking-wide">Recommended Crop</div>
+        <h1 class="display-3 fw-bold mb-2" style="color: {{ market.color }}">{{ predicted_crop }}</h1>
+        <div class="confidence-badge d-inline-flex align-items-center gap-2 px-4 py-2 mb-3">
+          <i class="fas fa-check-circle text-success"></i>
+          <span class="fw-bold fs-5">{{ confidence }}% Confidence</span>
+        </div>
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+          <span class="badge bg-secondary fs-6">{{ region_name }} Region</span>
+          <span class="badge fs-6" style="background: {{ market.color }}">{{ market.market_viability }} Market</span>
+        </div>
+
+        <!-- Confidence bar -->
+        <div class="mt-4">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted">Ensemble Confidence</span>
+            <span class="fw-bold" style="color: {{ market.color }}">{{ confidence }}%</span>
+          </div>
+          <div class="progress" style="height: 10px; border-radius: 5px">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+              style="width: {{ confidence }}%; background: {{ market.color }}; border-radius: 5px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Crop Probabilities -->
+      <div class="form-card p-4 mb-4">
+        <h5 class="fw-bold mb-4 section-head">
+          <i class="fas fa-chart-bar me-2 text-info"></i>All Crop Probabilities
+        </h5>
+        <canvas id="cropProbChart" height="140"></canvas>
+        <div class="mt-3">
+          {% for item in crop_probs %}
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="fw-semibold" style="width:80px">{{ item.crop }}</div>
+            <div class="flex-grow-1">
+              <div class="progress" style="height:18px; border-radius:4px">
+                <div class="progress-bar fw-bold" role="progressbar"
+                  style="width:{{ item.prob }}%; background: {% if loop.index == 1 %}{{ market.color }}{% else %}#6c757d{% endif %}"
+                  >{{ item.prob }}%</div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Alternative Recommendations -->
+      {% if alt_recommendations %}
+      <div class="form-card p-4">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-exchange-alt me-2 text-warning"></i>Alternative Recommendations
+        </h5>
+        <div class="row g-3">
+          {% for alt in alt_recommendations %}
+          <div class="col-md-6">
+            <div class="alt-card p-3" style="border-left: 4px solid {{ alt.color }}">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0" style="color: {{ alt.color }}">{{ alt.crop }}</h6>
+                <span class="badge" style="background: {{ alt.color }}">{{ alt.probability }}%</span>
+              </div>
+              <div class="tiny-text">
+                <i class="fas fa-rupee-sign me-1"></i>&#8377;{{ alt.market_price }}/qt &nbsp;|&nbsp;
+                <i class="fas fa-percent me-1"></i>{{ alt.profit_margin }}% profit
+              </div>
+              <div class="tiny-text text-muted">Demand: {{ alt.demand_level }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT: Market Info & Input Summary -->
+    <div class="col-lg-5">
+      <!-- Market Analysis -->
+      <div class="form-card p-4 mb-4">
+        <h5 class="fw-bold mb-4 section-head">
+          <i class="fas fa-store me-2 text-success"></i>Market Analysis
+        </h5>
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-success"><i class="fas fa-rupee-sign fa-lg"></i></div>
+              <div class="fw-bold fs-5 mt-1">&#8377;{{ market.market_price }}</div>
+              <div class="tiny-text text-muted">Market Price/Quintal</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-warning"><i class="fas fa-percent fa-lg"></i></div>
+              <div class="fw-bold fs-5 mt-1">{{ market.profit_margin }}%</div>
+              <div class="tiny-text text-muted">Profit Margin</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-info"><i class="fas fa-shopping-bag fa-lg"></i></div>
+              <div class="fw-bold mt-1">{{ market.demand_level }}</div>
+              <div class="tiny-text text-muted">Market Demand</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-primary"><i class="fas fa-ship fa-lg"></i></div>
+              <div class="fw-bold mt-1">{{ market.export_potential }}</div>
+              <div class="tiny-text text-muted">Export Potential</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-danger"><i class="fas fa-calendar fa-lg"></i></div>
+              <div class="fw-bold mt-1">{{ market.growing_season_days }} days</div>
+              <div class="tiny-text text-muted">Growing Season</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="mstat-card text-center p-3">
+              <div class="mstat-icon text-cyan"><i class="fas fa-tint fa-lg"></i></div>
+              <div class="fw-bold mt-1">{{ market.water_requirement_mm }} mm</div>
+              <div class="tiny-text text-muted">Water Requirement</div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 p-3 rounded" style="background: {{ market.color }}15; border: 1px solid {{ market.color }}40">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small fw-semibold">Composite Market Score</span>
+            <span class="fw-bold" style="color: {{ market.color }}">{{ market.composite_score }}/10</span>
+          </div>
+          <div class="progress" style="height:8px">
+            <div class="progress-bar" style="width: {{ (market.composite_score/10)*100 }}%; background: {{ market.color }}"></div>
+          </div>
+          <div class="text-center mt-2">
+            <span class="badge fs-6" style="background: {{ market.color }}">{{ market.market_viability }} Viability</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Summary -->
+      <div class="form-card p-4 mb-4">
+        <h5 class="fw-bold mb-3 section-head">
+          <i class="fas fa-clipboard-list me-2 text-secondary"></i>Input Summary
+        </h5>
+        <table class="table table-sm input-table">
+          <tbody>
+            <tr><td><i class="fas fa-thermometer me-2 text-danger"></i>Temperature</td><td class="fw-bold">{{ input_data.Temperature }}°C</td></tr>
+            <tr><td><i class="fas fa-cloud-rain me-2 text-info"></i>Rainfall</td><td class="fw-bold">{{ input_data.Rainfall }} mm</td></tr>
+            <tr><td><i class="fas fa-water me-2 text-primary"></i>Humidity</td><td class="fw-bold">{{ input_data.Humidity }}%</td></tr>
+            <tr><td><i class="fas fa-flask me-2 text-warning"></i>Soil pH</td><td class="fw-bold">{{ input_data.Soil_pH }}</td></tr>
+            <tr><td><i class="fas fa-atom me-2 text-success"></i>Nitrogen</td><td class="fw-bold">{{ input_data.Nitrogen }} kg/ha</td></tr>
+            <tr><td><i class="fas fa-atom me-2 text-orange"></i>Phosphorus</td><td class="fw-bold">{{ input_data.Phosphorus }} kg/ha</td></tr>
+            <tr><td><i class="fas fa-atom me-2 text-purple"></i>Potassium</td><td class="fw-bold">{{ input_data.Potassium }} kg/ha</td></tr>
+            <tr><td><i class="fas fa-mountain me-2 text-muted"></i>Altitude</td><td class="fw-bold">{{ input_data.Altitude }} m</td></tr>
+            <tr><td><i class="fas fa-map-marker-alt me-2 text-danger"></i>Region</td><td class="fw-bold">{{ region_name }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-grid gap-3">
+        <a href="/predict" class="btn btn-success btn-lg">
+          <i class="fas fa-redo me-2"></i>New Prediction
+        </a>
+        <a href="/dashboard" class="btn btn-outline-info btn-lg">
+          <i class="fas fa-chart-line me-2"></i>View Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const labels = {{ crop_probs | map(attribute='crop') | list | tojson }};
+const data   = {{ crop_probs | map(attribute='prob') | list | tojson }};
+const colors = ['{{ market.color }}', '#6c757d', '#495057', '#868e96', '#adb5bd'];
+new Chart(document.getElementById('cropProbChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Probability (%)',
+      data,
+      backgroundColor: colors,
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, max: 100,
+           ticks: { color: '#adb5bd' },
+           grid:  { color: '#2c3e50' } },
+      x: { ticks: { color: '#adb5bd' },
+           grid:  { display: false } }
+    },
+    responsive: true
+  }
+});
+</script>
+{% endblock %}
